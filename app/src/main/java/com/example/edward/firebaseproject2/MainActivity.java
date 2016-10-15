@@ -39,6 +39,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -115,8 +118,55 @@ public class MainActivity extends AppCompatActivity {
         //added firebase server dependency for database reference
         locationRef = mRootRef.child("locations");
 
+//        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference(msgRef.toString());
+        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference().child("messages");
 
+        final GeoFire geoFire = new GeoFire(geoRef);
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                //TODO: remove next line
+                msgRef.child("hehe").setValue(location.getLatitude() + "," + location.getLongitude());
 
+//                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+//                    @Override
+//                    public void onComplete(String key, DatabaseError error) {
+//                        if (error != null) {
+//                            System.err.println("There was an error saving the location to GeoFire: " + error);
+//                        } else {
+//                            System.out.println("Location saved on server successfully!");
+//                        }
+//                    }
+//                });
+            }
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+                //wtf is a status
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+                //record this shit
+            }
+            @Override
+            public void onProviderDisabled(String s) {
+                geoFire.removeLocation(user1.getUid().toString());
+                //dont allow them to access geoquery and remove from the geofire locations
+            }
+        };
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try {
+            //updates location every 5 minutes (300000 ms), and only calls the location listener if 500meters (.3miles) have passed between last point
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300000, 500, locationListener);
+        } catch(SecurityException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("GPS DOESNT WORK")
+                    .setNegativeButton("Ok", null)
+                    .create()
+                    .show();
+        }
+        //end test location
 
         FirebaseListAdapter<String> adapter = new FirebaseListAdapter<String>(this, String.class, android.R.layout.simple_list_item_1,msgRef) {
             @Override
