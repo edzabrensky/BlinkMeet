@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         locationRef = mRootRef.child("locations");
 
 //        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference(msgRef.toString());
-        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference().child("messages");
+        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference().child("locations");
 
         final GeoFire geoFire = new GeoFire(geoRef);
         LocationListener locationListener = new LocationListener() {
@@ -128,16 +128,17 @@ public class MainActivity extends AppCompatActivity {
                 //TODO: remove next line
                 msgRef.child("hehe").setValue(location.getLatitude() + "," + location.getLongitude());
 
-//                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
-//                    @Override
-//                    public void onComplete(String key, DatabaseError error) {
-//                        if (error != null) {
-//                            System.err.println("There was an error saving the location to GeoFire: " + error);
-//                        } else {
-//                            System.out.println("Location saved on server successfully!");
-//                        }
-//                    }
-//                });
+                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+//                geoFire.setLocation("pizza", new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String key, DatabaseError error) {
+                        if (error != null) {
+                            System.err.println("There was an error saving the location to GeoFire: " + error);
+                        } else {
+                            System.out.println("Location saved on server successfully!");
+                        }
+                    }
+                });
             }
             @Override
             public void onStatusChanged(String s, int i, Bundle bundle) {
@@ -173,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
             protected void populateView(View view, String s, int i) {
                 TextView textView = (TextView) view.findViewById(android.R.id.text1);
                 textView.setText(s);
+//                textView.setText("pizza");
             }
         };
         mListView.setAdapter(adapter);
