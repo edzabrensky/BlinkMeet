@@ -32,6 +32,8 @@ import com.firebase.client.Firebase;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.firebase.ui.FirebaseListAdapter;
 import com.google.android.gms.common.internal.GetServiceRequest;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -58,7 +60,11 @@ public class MainActivity extends AppCompatActivity {
     private Button bLogout;
     private Button bSettings;
     private Button bUpload;
+    private Button bSearch;
     private StorageReference storageRef;
+    private boolean gpsEnabled;
+    private double latitude;
+    private double longitude;
 
     private ArrayList<String> mMessages = new ArrayList<>();
 
@@ -66,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private Firebase locationRef;
+    private Firebase userRef;
+    private Firebase msgRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +86,14 @@ public class MainActivity extends AppCompatActivity {
         bLogout = (Button)findViewById(R.id.bLogout);
         bSettings = (Button)findViewById(R.id.bSettings);
         bUpload = (Button)findViewById(R.id.bUpload);
+        bSearch = (Button)findViewById(R.id.bSearch);
+
         FirebaseStorage storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://tutorial2-d6f2e.appspot.com");
+
+        userRef = mRootRef.child("users");
+        msgRef = mRootRef.child("messages");
+
         //checks if user is logged in
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -104,10 +118,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        final Firebase userRef = mRootRef.child("users");
-        final Firebase msgRef = mRootRef.child("messages");
-
-        //TODO:delete this later
 
 
 
@@ -118,24 +128,26 @@ public class MainActivity extends AppCompatActivity {
         //added firebase server dependency for database reference
         locationRef = mRootRef.child("locations");
 
-//        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference(msgRef.toString());
-        DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference().child("locations");
+
+        final DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference().child("locations");
 
         final GeoFire geoFire = new GeoFire(geoRef);
+
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                //TODO: remove next line
-                msgRef.child("hehe").setValue(location.getLatitude() + "," + location.getLongitude());
-
-                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
-//                geoFire.setLocation("pizza", new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+                //enabled gps after geofire completes so we get more accurate estimate of location
+                gpsEnabled = false;
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
                     @Override
                     public void onComplete(String key, DatabaseError error) {
                         if (error != null) {
                             System.err.println("There was an error saving the location to GeoFire: " + error);
                         } else {
                             System.out.println("Location saved on server successfully!");
+                            gpsEnabled = true;
                         }
                     }
                 });
@@ -147,12 +159,26 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onProviderEnabled(String s) {
-
-                //record this shit
+                gpsEnabled = true;
+                onStart();
+                System.out.println("Provider enabled.");
             }
             @Override
             public void onProviderDisabled(String s) {
-                geoFire.removeLocation(user1.getUid().toString());
+                gpsEnabled = false;
+//                geoFire.removeLocation(user1.getUid().toString());
+//                locationRef.child(user1.getUid().toString()).removeValue();
+                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(0, 0), new GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String key, DatabaseError error) {
+                        if (error != null) {
+                            System.err.println("There was an error saving the provider disabled error to GeoFire: " + error);
+                        } else {
+                            System.out.println("Provider disabled saved on server successfully!");
+                        }
+                    }
+                });
+
                 //dont allow them to access geoquery and remove from the geofire locations
             }
         };
@@ -167,6 +193,8 @@ public class MainActivity extends AppCompatActivity {
                     .create()
                     .show();
         }
+
+
         //end test location
 
         FirebaseListAdapter<String> adapter = new FirebaseListAdapter<String>(this, String.class, android.R.layout.simple_list_item_1,msgRef) {
@@ -181,6 +209,17 @@ public class MainActivity extends AppCompatActivity {
         bLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                gpsEnabled = false;
+                geoFire.setLocation(user1.getUid().toString(), new GeoLocation(0, 0), new GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String key, DatabaseError error) {
+                        if (error != null) {
+                            System.err.println("There was an error saving the provider disabled location to GeoFire: " + error);
+                        } else {
+                            System.out.println("Provider disabled saved on server successfully!");
+                        }
+                    }
+                });
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 MainActivity.this.startActivity(intent);
@@ -207,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 uploadTask.addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
-                        System.out.print("Upload doesnt work.Doesnt work ");
+                        System.out.print("Upload doesnt work.Doesnt work " + '\n');
                         // Handle unsuccessful uploads
                     }
                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -222,7 +261,67 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+        bSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(gpsEnabled) {
+                    //searches withing .3 miles to find people around them
+                    GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(latitude, longitude), .6);
+                    geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+                        @Override
+                        public void onKeyEntered(String key, GeoLocation location) {
+                            //add item to user's nearby list
+                        }
+
+                        @Override
+                        public void onKeyExited(String key) {
+
+                        }
+
+                        @Override
+                        public void onKeyMoved(String key, GeoLocation location) {
+
+                        }
+
+                        @Override
+                        public void onGeoQueryReady() {
+
+                        }
+
+                        @Override
+                        public void onGeoQueryError(DatabaseError error) {
+
+                        }
+                    });
+                    System.out.println("Successfully clicked search.");
+                }
+                else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("GPS needs to be enabled to access this page.")
+                            .setNegativeButton("Ok", null)
+                            .create()
+                            .show();
+                }
+
+            }
+        });
 
 
     }
+
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+////        geoFire.setLocation(user1.getUid().toString(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+////            @Override
+////            public void onComplete(String key, DatabaseError error) {
+////                if (error != null) {
+////                    System.err.println("There was an error saving the location to GeoFire: " + error);
+////                } else {
+////                    System.out.println("Location saved on server successfully!");
+////                    gpsEnabled = true;
+////                }
+////            }
+////        });
+//    }
 }

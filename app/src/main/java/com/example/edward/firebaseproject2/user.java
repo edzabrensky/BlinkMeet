@@ -22,4 +22,5 @@ public class user {
         this.sexuality = sexuality;
         this.picURL = picURL;
     }
+
 }
