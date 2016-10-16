@@ -74,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
     private Firebase locationRef;
     private Firebase userRef;
     private Firebase msgRef;
+    private DatabaseReference geoRef;
+    private GeoFire geoFire;
+    private FirebaseUser user1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +96,9 @@ public class MainActivity extends AppCompatActivity {
 
         userRef = mRootRef.child("users");
         msgRef = mRootRef.child("messages");
-
+        locationRef = mRootRef.child("locations");
+        geoRef = FirebaseDatabase.getInstance().getReference().child("locations");
+        geoFire = new GeoFire(geoRef);
         //checks if user is logged in
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -118,20 +123,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
-
-
-        final FirebaseUser user1 = FirebaseAuth.getInstance().getCurrentUser();
+        user1 = FirebaseAuth.getInstance().getCurrentUser();
         mTextView.setText(user1.getUid().toString());
 
         //testing location
-        //added firebase server dependency for database reference
-        locationRef = mRootRef.child("locations");
-
-
-        final DatabaseReference geoRef = FirebaseDatabase.getInstance().getReference().child("locations");
-
-        final GeoFire geoFire = new GeoFire(geoRef);
 
         LocationListener locationListener = new LocationListener() {
             @Override
@@ -166,8 +161,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProviderDisabled(String s) {
                 gpsEnabled = false;
-//                geoFire.removeLocation(user1.getUid().toString());
-//                locationRef.child(user1.getUid().toString()).removeValue();
                 geoFire.setLocation(user1.getUid().toString(), new GeoLocation(0, 0), new GeoFire.CompletionListener() {
                     @Override
                     public void onComplete(String key, DatabaseError error) {
@@ -202,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
             protected void populateView(View view, String s, int i) {
                 TextView textView = (TextView) view.findViewById(android.R.id.text1);
                 textView.setText(s);
-//                textView.setText("pizza");
             }
         };
         mListView.setAdapter(adapter);
@@ -265,17 +257,25 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(gpsEnabled) {
+                    userRef.child(user1.getUid()).child("nearMe").setValue(null);
                     //searches withing .3 miles to find people around them
+
                     GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(latitude, longitude), .6);
                     geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                         @Override
                         public void onKeyEntered(String key, GeoLocation location) {
-                            //add item to user's nearby list
+                            if(user1.getUid().toString().equals(key)) {
+                                userRef.child(user1.getUid()).child("nearMe").child(key).setValue(key);
+//                                userRef.child(user1.getUid()).child("nearMe").child(fb).setValue(key);
+                                System.out.println(key + " added to geoQuery.");
+                                //add item to user's nearby list
+                            }
                         }
 
                         @Override
                         public void onKeyExited(String key) {
-
+                            userRef.child(user1.getUid()).child("nearMe").child(key).removeValue();
+                            System.out.println(key + " removed from geoQuery.");
                         }
 
                         @Override
@@ -285,12 +285,13 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onGeoQueryReady() {
-
+                            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                            MainActivity.this.startActivity(intent);
                         }
 
                         @Override
                         public void onGeoQueryError(DatabaseError error) {
-
+                            System.out.println("Geoquery failed to ready");
                         }
                     });
                     System.out.println("Successfully clicked search.");
@@ -308,20 +309,20 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
 //    @Override
 //    protected void onStop() {
+//        geoFire.setLocation(user1.getUid().toString(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+//            @Override
+//            public void onComplete(String key, DatabaseError error) {
+//                if (error != null) {
+//                    System.err.println("There was an error saving the location disabled to GeoFire: " + error);
+//                } else {
+//                    System.out.println("location disabled saved on server successfully!");
+//                    gpsEnabled = false;
+//                }
+//            }
+//        });
 //        super.onStop();
-////        geoFire.setLocation(user1.getUid().toString(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
-////            @Override
-////            public void onComplete(String key, DatabaseError error) {
-////                if (error != null) {
-////                    System.err.println("There was an error saving the location to GeoFire: " + error);
-////                } else {
-////                    System.out.println("Location saved on server successfully!");
-////                    gpsEnabled = true;
-////                }
-////            }
-////        });
+//
 //    }
 }

@@ -10,6 +10,7 @@ public class user {
     public String gender;
     public String sexuality;
     public String picURL;
+    public int numWinks;
     public user() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
@@ -21,6 +22,7 @@ public class user {
         this.gender = gender;
         this.sexuality = sexuality;
         this.picURL = picURL;
+        numWinks = 0;
     }
 
 }

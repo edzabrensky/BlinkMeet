@@ -12,4 +12,5 @@ public class BlinkMeet extends android.app.Application {
         super.onCreate();
         Firebase.setAndroidContext(this);
     }
+
 }
