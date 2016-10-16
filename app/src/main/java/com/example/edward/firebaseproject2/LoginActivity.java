@@ -72,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
                 LoginActivity.this.startActivity(intent);
             }
         });
-
+        //TODO: add forgot password/username
         bLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

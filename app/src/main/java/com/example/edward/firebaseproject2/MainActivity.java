@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                     geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                         @Override
                         public void onKeyEntered(String key, GeoLocation location) {
-                            if(user1.getUid().toString().equals(key)) {
+                            if(!user1.getUid().toString().equals(key)) {
                                 userRef.child(user1.getUid()).child("nearMe").child(key).setValue(key);
 //                                userRef.child(user1.getUid()).child("nearMe").child(fb).setValue(key);
                                 System.out.println(key + " added to geoQuery.");
