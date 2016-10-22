@@ -62,4 +62,14 @@
         android:layout_below="@+id/bSettings"
         android:layout_alignRight="@+id/bSettings"
         android:layout_alignEnd="@+id/bSettings" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/iv"
+        android:layout_alignTop="@+id/bSettings"
+        android:layout_toLeftOf="@+id/bSearch"
+        android:layout_toStartOf="@+id/bSearch"
+        android:visibility="invisible" />
+
 </RelativeLayout>

@@ -7,9 +7,12 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Image;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -23,6 +26,7 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -34,6 +38,7 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.firebase.geofire.core.GeoHashQuery;
 import com.firebase.ui.FirebaseListAdapter;
 import com.google.android.gms.common.internal.GetServiceRequest;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -48,6 +53,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import android.widget.ArrayAdapter;
@@ -55,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int RESULT_LOAD_IMAGE = 1;
     private Firebase mRootRef;
     private FirebaseAuth mAuth;
     private Button bLogout;
@@ -64,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private StorageReference storageRef;
     private boolean gpsEnabled;
     private double latitude;
+    private ImageView imageToUpload;
     private double longitude;
 
     private ArrayList<String> mMessages = new ArrayList<>();
@@ -90,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
         bSettings = (Button)findViewById(R.id.bSettings);
         bUpload = (Button)findViewById(R.id.bUpload);
         bSearch = (Button)findViewById(R.id.bSearch);
+        imageToUpload = (ImageView) findViewById(R.id.iv);
+
 
         FirebaseStorage storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://tutorial2-d6f2e.appspot.com");
@@ -228,28 +238,55 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //TODO:find cameraroll path
-                String path = android.os.Environment.DIRECTORY_DCIM;
-                Uri file = Uri.fromFile(new File(path));
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(galleryIntent,RESULT_LOAD_IMAGE);
+//                Bitmap bitmap = ((BitmapDrawable)imageToUpload.getDrawable()).getBitmap();
 
-                StorageReference picRef = storageRef.child("images/"+file.getLastPathSegment());
-                UploadTask uploadTask = picRef.putFile(file);
+//                imageToUpload.setDrawingCacheEnabled(true);
+//                imageToUpload.buildDrawingCache();
+//                Bitmap bitmap = imageToUpload.getDrawingCache();
+//
+//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+//                byte[] data = baos.toByteArray();
+//                StorageReference picRef = storageRef.child("images/"+user1.getUid().toString());
+//                UploadTask uploadTask = picRef.putBytes(bitmap.getNinePatchChunk());
+//
+//                UploadTask uploadTask = picRef.putBytes(data);
+//                uploadTask.addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception exception) {
+//                        // Handle unsuccessful uploads
+//                    }
+//                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                    @Override
+//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+//                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+//                    }
+//                });
+//                String path = null;
+//                Uri file = Uri.fromFile(new File(path));
 
-// Register observers to listen for when the download is done or if it fails
-                uploadTask.addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        System.out.print("Upload doesnt work.Doesnt work " + '\n');
-                        // Handle unsuccessful uploads
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        Firebase dlURL = userRef.child(user1.getUid().toString());
-                        dlURL.child("picURL").setValue(downloadUrl);
-                    }
-                });
+//                StorageReference picRef = storageRef.child("images/"+user1.getUid().toString());
+//                UploadTask uploadTask = picRef.putFile(file);
+//
+//// Register observers to listen for when the download is done or if it fails
+//                uploadTask.addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception exception) {
+//                        System.out.print("Upload doesnt work.Doesnt work " + '\n');
+//                        // Handle unsuccessful uploads
+//                    }
+//                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                    @Override
+//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+//                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+//                        Firebase dlURL = userRef.child(user1.getUid().toString());
+//                        dlURL.child("picURL").setValue(downloadUrl);
+//                    }
+//                });
             }
 
         });
@@ -264,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                         @Override
                         public void onKeyEntered(String key, GeoLocation location) {
-                            if(!user1.getUid().toString().equals(key)) {
+                            if(!user1.getUid().toString().equals(key) || user1.getUid().toString().equals(key)) {
                                 userRef.child(user1.getUid()).child("nearMe").child(key).setValue(key);
 //                                userRef.child(user1.getUid()).child("nearMe").child(fb).setValue(key);
                                 System.out.println(key + " added to geoQuery.");
@@ -309,7 +346,30 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-//    @Override
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && data != null) {
+//            Uri selectedImage = data.getData();
+            Uri selectedImage = data.getData();
+
+            imageToUpload.setImageURI(selectedImage);
+            imageToUpload.setDrawingCacheEnabled(true);
+            imageToUpload.buildDrawingCache();
+//            Bitmap bitmap = imageToUpload.getDrawingCache();
+            Bitmap bitmap = ((BitmapDrawable)imageToUpload.getDrawable()).getBitmap();
+//
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] data1 = baos.toByteArray();
+            StorageReference picRef = storageRef.child("users/"+user1.getUid().toString());
+            UploadTask uploadTask = picRef.putBytes(data1);
+//            UploadTask uploadTask = picRef.putBytes(bitmap.getNinePatchChunk());
+
+        }
+    }
+    //    @Override
 //    protected void onStop() {
 //        geoFire.setLocation(user1.getUid().toString(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
 //            @Override
