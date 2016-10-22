@@ -20,4 +20,13 @@
         android:choiceMode="singleChoice"
         android:longClickable="false"
         tools:listitem="@layout/user_in_list" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Near Me"
+        android:id="@+id/textView4"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

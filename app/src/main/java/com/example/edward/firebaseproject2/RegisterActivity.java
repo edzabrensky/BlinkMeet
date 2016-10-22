@@ -7,8 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
@@ -24,8 +27,13 @@ public class RegisterActivity extends AppCompatActivity {
     EditText etEmail;
     EditText etPassword1;
     EditText etPassword2;
+    EditText etName;
     Button bRegister;
+    Spinner sGender;
+    Spinner sRelationship;
+    Spinner sSexuality;
     private Firebase mRef;
+
 
 
     @Override
@@ -44,6 +52,7 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         };
+
     }
 
     @Override
@@ -52,9 +61,27 @@ public class RegisterActivity extends AppCompatActivity {
         etEmail = (EditText)findViewById(R.id.etEmail);
         etPassword1 = (EditText)findViewById(R.id.etPassword1);
         etPassword2 = (EditText)findViewById(R.id.etPassword2);
+        etName = (EditText)findViewById(R.id.etName);
         bRegister = (Button)findViewById(R.id.bRegister);
         mAuth.addAuthStateListener(mAuthListener);
         mRef = new Firebase("https://tutorial2-d6f2e.firebaseio.com/");
+        sGender = (Spinner)findViewById(R.id.sGender);
+        sRelationship = (Spinner)findViewById(R.id.sRelationship);
+        sSexuality = (Spinner)findViewById(R.id.sSexuality);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.gender_array, android.R.layout.simple_spinner_item);
+//// Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sGender.setAdapter(adapter);
+        adapter = ArrayAdapter.createFromResource(this,
+                R.array.relationship_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sRelationship.setAdapter(adapter);
+
+        adapter = ArrayAdapter.createFromResource(this,
+                R.array.sexuality_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sSexuality.setAdapter(adapter);
 
         bRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,6 +89,7 @@ public class RegisterActivity extends AppCompatActivity {
                 final String email = etEmail.getText().toString();
                 final String pass1 = etPassword1.getText().toString();
                 final String pass2 = etPassword2.getText().toString();
+                final String name = etName.getText().toString();
                 if(pass1.equals(pass2)) {
                     mAuth.createUserWithEmailAndPassword(email, pass1)
                             .addOnCompleteListener(RegisterActivity.this, new OnCompleteListener<AuthResult>() {
@@ -76,7 +104,8 @@ public class RegisterActivity extends AppCompatActivity {
                                     }
                                     else {
                                         FirebaseUser user1 = FirebaseAuth.getInstance().getCurrentUser();
-                                        user User = new user(user1.getUid(), email, ".", ".", ".", ".");
+                                        user User = new user(user1.getUid(), email, sRelationship.getSelectedItem().toString(), sGender.getSelectedItem().toString(),
+                                                sSexuality.getSelectedItem().toString(), name);
                                         mRef.child("users").child(user1.getUid()).setValue(User);
                                         Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                                         RegisterActivity.this.startActivity(intent);

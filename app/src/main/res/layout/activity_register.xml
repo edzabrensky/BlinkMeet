@@ -24,13 +24,12 @@
         android:inputType="textEmailAddress"
         android:ems="10"
         android:id="@+id/etEmail"
-        android:layout_below="@+id/textView3"
+        android:hint="Email"
+        android:layout_below="@+id/etName"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="30dp"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:hint="Email" />
+        android:layout_alignParentEnd="true" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -38,12 +37,12 @@
         android:inputType="textPassword"
         android:ems="10"
         android:id="@+id/etPassword1"
+        android:hint="Password"
         android:layout_below="@+id/etEmail"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/etEmail"
-        android:layout_alignEnd="@+id/etEmail"
-        android:hint="Password" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -51,18 +50,59 @@
         android:inputType="textPassword"
         android:ems="10"
         android:id="@+id/etPassword2"
+        android:hint="Re-type Password"
         android:layout_below="@+id/etPassword1"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/etPassword1"
-        android:layout_alignEnd="@+id/etPassword1"
-        android:hint="Re-type Password" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Register"
         android:id="@+id/bRegister"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/etPassword2"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="111dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress"
+        android:ems="10"
+        android:id="@+id/etName"
+        android:hint="Full Name"
+        android:layout_below="@+id/textView3"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sGender"
+        android:layout_below="@+id/etPassword2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:spinnerMode="dropdown" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sSexuality"
+        android:layout_alignTop="@+id/sGender"
+        android:layout_centerHorizontal="true"
+        android:spinnerMode="dropdown" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sRelationship"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/etPassword2"
+        android:spinnerMode="dropdown" />
+
 </RelativeLayout>

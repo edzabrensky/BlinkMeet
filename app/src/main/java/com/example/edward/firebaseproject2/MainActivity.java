@@ -382,9 +382,10 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-    //    @Override
-//    protected void onStop() {
-//        geoFire.setLocation(user1.getUid().toString(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+
+//        @Override
+//    protected void onDestroy() {
+//        geoFire.setLocation(user1.getUid().toString(), new GeoLocation(0, 0), new GeoFire.CompletionListener() {
 //            @Override
 //            public void onComplete(String key, DatabaseError error) {
 //                if (error != null) {
@@ -395,7 +396,7 @@ public class MainActivity extends AppCompatActivity {
 //                }
 //            }
 //        });
-//        super.onStop();
+//        super.onDestroy();
 //
 //    }
 }

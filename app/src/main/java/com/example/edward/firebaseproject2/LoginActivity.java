@@ -78,30 +78,31 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 final String username = etUsername.getText().toString();
                 final String password = etPassword.getText().toString();
-                mAuth.signInWithEmailAndPassword(username, password)
-                        .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                Log.d("MSG/", "signInWithEmail:onComplete:" + task.isSuccessful());
+                if(!(username.isEmpty() || password.isEmpty())) {
+                    mAuth.signInWithEmailAndPassword(username, password)
+                            .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    Log.d("MSG/", "signInWithEmail:onComplete:" + task.isSuccessful());
 
-                                // If sign in fails, display a message to the user. If sign in succeeds
-                                // the auth state listener will be notified and logic to handle the
-                                // signed in user can be handled in the listener.
-                                if (!task.isSuccessful()) {
-                                    Log.w("MSG/", "signInWithEmail:failed", task.getException());
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                                    builder.setMessage("Login Failed")
-                                            .setNegativeButton("Retry", null)
-                                            .create()
-                                            .show();
-                                }
-                                else {
-                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                    LoginActivity.this.startActivity(intent);
-                                }
+                                    // If sign in fails, display a message to the user. If sign in succeeds
+                                    // the auth state listener will be notified and logic to handle the
+                                    // signed in user can be handled in the listener.
+                                    if (!task.isSuccessful()) {
+                                        Log.w("MSG/", "signInWithEmail:failed", task.getException());
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                                        builder.setMessage("Login Failed")
+                                                .setNegativeButton("Retry", null)
+                                                .create()
+                                                .show();
+                                    } else {
+                                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                        LoginActivity.this.startActivity(intent);
+                                    }
 
-                            }
-                        });
+                                }
+                            });
+                }
 
             }
         });

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +23,7 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseListAdapter;
 import com.google.android.gms.common.data.DataHolder;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -206,23 +208,41 @@ public class SearchActivity extends AppCompatActivity {
                 //s is the nearby user uid
                 final TextView textView = (TextView) view.findViewById(R.id.textView1);
                 final ImageView imageView = (ImageView) view.findViewById(R.id.icon);
-                final TextView tvUID = (TextView) view.findViewById(R.id.uid);
+                final TextView tvUID = (TextView)view.findViewById(R.id.uid);
                 tvUID.setText(s);
                 userRef.child(s).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        textView.setText(dataSnapshot.child("email").getValue().toString());
-                        //                        picRef = storageRef.child("users/"+file.getLastPathSegment());
-                        storageRef.child("users/" + tvUID.getText()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
+                        textView.setText(dataSnapshot.child("name").getValue().toString());
+                        FirebaseStorage storage = FirebaseStorage.getInstance();
+                        StorageReference q = storageRef.child("users").child(tvUID.getText().toString());
+//                    tv.setText(dataSnapshot.child("name").getValue().toString());
 
-                                imageView.setImageURI(uri);
-                                System.out.println("URI successfully downloaded");
-                                Log.d("URISTATUS","URI SUCCESFULLY Downloaded");
-                                //                                imageView.setImageIcon(uri);
+                        q.getBytes(Long.MAX_VALUE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                            @Override
+                            public void onSuccess(byte[] bytes) {
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                imageView.setImageBitmap(bitmap);
+
+                                // Use the bytes to display the image
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception exception) {
+                                // Handle any errors
                             }
                         });
+                        //                        picRef = storageRef.child("users/"+file.getLastPathSegment());
+//                        storageRef.child("users/" + tvUID).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+//                            @Override
+//                            public void onSuccess(Uri uri) {
+//
+//                                imageView.setImageURI(uri);
+//                                System.out.println("URI successfully downloaded");
+//                                Log.d("URISTATUS","URI SUCCESFULLY Downloaded");
+//                                //                                imageView.setImageIcon(uri);
+//                            }
+//                        });
 
                         //                        Glide.with
                         //Uri file = Uri.fromFile(new File(path));
