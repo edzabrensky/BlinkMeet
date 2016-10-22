@@ -365,6 +365,19 @@ public class MainActivity extends AppCompatActivity {
             byte[] data1 = baos.toByteArray();
             StorageReference picRef = storageRef.child("users/"+user1.getUid().toString());
             UploadTask uploadTask = picRef.putBytes(data1);
+            uploadTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Handle unsuccessful uploads
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                    userRef.child(user1.getUid().toString()).child("picURL").setValue(downloadUrl.toString());
+                }
+            });
 //            UploadTask uploadTask = picRef.putBytes(bitmap.getNinePatchChunk());
 
         }

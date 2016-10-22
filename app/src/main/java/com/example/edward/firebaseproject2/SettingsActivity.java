@@ -1,5 +1,6 @@
 package com.example.edward.firebaseproject2;
 
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,13 +11,17 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.ArrayList;
 //TODO:FIX THIS screen
 //static listview for settings
 public class SettingsActivity extends AppCompatActivity {
-    private final String[] settings = {"Settings1", "Settings2"};
+    private final String[] settings = {"Settings1", "View Profile"};
     private ArrayAdapter<String> adapter;
     private ListView lvSettings;
+    private FirebaseUser user1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +40,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        user1 = FirebaseAuth.getInstance().getCurrentUser();
         lvSettings.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -43,8 +49,13 @@ public class SettingsActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
                     builder.setMessage("Worked ")
                             .setNegativeButton("Ok", null)
-                            .create()
+                                                        .create()
                             .show();
+                }
+                if(value.equals("View Profile")) {
+                    Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
+                    intent.putExtra("uid",user1.getUid().toString());
+                    SettingsActivity.this.startActivity(intent);
                 }
             }
         });

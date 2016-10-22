@@ -1,5 +1,6 @@
 package com.example.edward.firebaseproject2;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
@@ -205,14 +206,14 @@ public class SearchActivity extends AppCompatActivity {
                 //s is the nearby user uid
                 final TextView textView = (TextView) view.findViewById(R.id.textView1);
                 final ImageView imageView = (ImageView) view.findViewById(R.id.icon);
-                TextView tvUID = (TextView) view.findViewById(R.id.uid);
+                final TextView tvUID = (TextView) view.findViewById(R.id.uid);
                 tvUID.setText(s);
                 userRef.child(s).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         textView.setText(dataSnapshot.child("email").getValue().toString());
                         //                        picRef = storageRef.child("users/"+file.getLastPathSegment());
-                        storageRef.child("users/1176409_382546168549198_612626050_n.jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        storageRef.child("users/" + tvUID.getText()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
 
@@ -243,6 +244,9 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String uid = ((TextView)view.findViewById(R.id.uid)).getText().toString();
+                Intent intent = new Intent(SearchActivity.this,ProfileActivity.class);
+                intent.putExtra("uid", uid);
+                SearchActivity.this.startActivity(intent);
 //                String userSelected = (String)adapterView.getItemAtPosition(i);
             }
         });
